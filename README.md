@@ -1,4 +1,4 @@
-
+**Live Demo:** [Try it here!](https://adamcklee.github.io/grade-calculator-plus/)
 # Grade Calculator +
 
 A simple, interactive web app designed for students to calculate their grades and set goals for improvement.  
