@@ -1,0 +1,156 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Grade Calculator +</title> <style> /* === Background + Dark Theme === */ body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; color: #f5f5f5; background: url('https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.49871.1844522.1759809723.background.png') center/cover no-repeat fixed; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; text-align: center; }
+h1 {
+  font-size: 34px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Dark overlay for readability */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  z-index: 0;
+}
+
+/* Calculator box */
+.container {
+  position: relative;
+  z-index: 1;
+  background: rgba(20, 20, 20, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  padding: 25px 40px;
+  text-align: center;
+  width: 480px;
+  backdrop-filter: blur(8px);
+}
+
+input, select, button {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+input, select {
+  width: 95%;
+  background-color: #2a2a2a;
+  color: #f5f5f5;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  width: 100%;
+  transition: transform 0.25s ease-in-out, background 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+}
+
+button:hover {
+  background-color: #005fcc;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+hr {
+  border: 1px solid #333;
+  margin: 15px 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+th, td {
+  border: 1px solid #444;
+  padding: 6px;
+  text-align: center;
+}
+
+th {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#output {
+  font-weight: bold;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+input[type="range"] {
+  width: 95%;
+  margin: 10px 0;
+}
+
+#targetDisplay {
+  font-weight: bold;
+  color: #007bff;
+}
+
+#neededOutput {
+  font-weight: bold;
+  font-size: 16px;
+  margin-top: 10px;
+  min-height: 20px;
+}
+
+</style> </head> <body> <div class="overlay"></div> <h1>Grade Calculator</h1> <div class="container"> <h2>Grade Calculator +</h2>
+<label>Formative Weight (%):</label>
+<input type="number" id="percent1" value="20">
+
+<label>Summative Weight (%):</label>
+<input type="number" id="percent2" value="80">
+
+<hr>
+
+<label>Score:</label>
+<input type="text" id="scoreInput" placeholder="e.g. 3/5">
+
+<label>Type:</label>
+<select id="scoreType">
+  <option value="formative">Formative</option>
+  <option value="summative">Summative</option>
+</select>
+
+<button id="addScore">Add Score</button>
+
+<h3>Assignments:</h3>
+<table id="scoreTable">
+  <thead>
+    <tr>
+      <th>Formative</th>
+      <th>Summative</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<button id="calculate">Calculate Final Grade</button>
+<p id="output"></p>
+
+<hr>
+<h3>Grade Goal Calculator</h3>
+
+<label>Target Grade: <span id="targetDisplay">90%</span></label>
+<input type="range" id="targetSlider" min="0" max="100" value="90" step="1">
+
+<label>Assignment Type:</label>
+<select id="futureType">
+  <option value="formative">Formative</option>
+  <option value="summative">Summative</option>
+</select>
+
+<label>Points Possible:</label>
+<input type="number" id="futurePoints" value="100">
+
+<button id="calculateNeeded">Calculate Needed Score</button>
+<p id="neededOutput"></p>
+
+</div> <script> let percent1List = []; let percent2List = []; function calculateCurrentGrade(percent1, percent2) { let total1Num = 0, total1Den = 0; percent1List.forEach(pair => { total1Num += pair[0]; total1Den += pair[1]; }); const total1 = [total1Num * percent1, total1Den * percent1]; let total2Num = 0, total2Den = 0; percent2List.forEach(pair => { total2Num += pair[0]; total2Den += pair[1]; }); const total2 = [total2Num * percent2, total2Den * percent2]; if ((total1[1] + total2[1]) === 0) return NaN; return (total1[0] + total2[0]) / (total1[1] + total2[1]); } document.getElementById("calculate").onclick = () => { const percent1 = parseFloat(document.getElementById("percent1").value) / 100; const percent2 = parseFloat(document.getElementById("percent2").value) / 100; const currentGrade = calculateCurrentGrade(percent1, percent2); if (isNaN(currentGrade)) { document.getElementById("output").innerText = "No scores entered yet!"; return; } document.getElementById("output").innerText = "Final Grade: " + (currentGrade * 100).toFixed(2) + "%"; }; document.getElementById("addScore").onclick = () => { const scoreInput = document.getElementById("scoreInput").value.trim(); const type = document.getElementById("scoreType").value; const parts = scoreInput.split("/"); if (parts.length !== 2) { alert("Enter score in x/y format"); return; } const numerator = parseFloat(parts[0]); const denominator = parseFloat(parts[1]); if (isNaN(numerator) || isNaN(denominator) || denominator === 0) { alert("Invalid numbers"); return; } const score = [numerator, denominator]; if (type === "formative") percent1List.push(score); else percent2List.push(score); const table = document.getElementById("scoreTable").querySelector("tbody"); const rowCount = Math.max(percent1List.length, percent2List.length); while (table.rows.length < rowCount) table.insertRow(); const row = table.rows[rowCount - 1]; if (type === "formative") { const cell = row.insertCell(0); cell.textContent = `${numerator}/${denominator}`; if (row.cells.length < 2) row.insertCell(1); } else { if (row.cells.length === 0) row.insertCell(0); const cell = row.insertCell(1); cell.textContent = `${numerator}/${denominator}`; } document.getElementById("scoreInput").value = ""; }; document.getElementById("calculateNeeded").onclick = () => { const targetGrade = parseFloat(document.getElementById("targetSlider").value) / 100; const futureType = document.getElementById("futureType").value; const futurePoints = parseFloat(document.getElementById("futurePoints").value); const percent1 = parseFloat(document.getElementById("percent1").value) / 100; const percent2 = parseFloat(document.getElementById("percent2").value) / 100; let currentFormativePoints = 0, currentFormativeTotal = 0; let currentSummativePoints = 0, currentSummativeTotal = 0; percent1List.forEach(([earned, possible]) => { currentFormativePoints += earned; currentFormativeTotal += possible; }); percent2List.forEach(([earned, possible]) => { currentSummativePoints += earned; currentSummativeTotal += possible; }); const currentWeightedScore = (currentFormativePoints * percent1) + (currentSummativePoints * percent2); const currentWeightedTotal = (currentFormativeTotal * percent1) + (currentSummativeTotal * percent2); const currentGrade = currentWeightedScore / currentWeightedTotal; if (isNaN(currentGrade)) { document.getElementById("neededOutput").innerText = "Add some scores first!"; return; } let neededScore; if (futureType === "formative") { const currentSummativeAvg = currentSummativeTotal > 0 ? currentSummativePoints / currentSummativeTotal : 0; const a = percent1; const b = percent2 * currentSummativeAvg; const total = currentFormativeTotal + futurePoints; neededScore = ((targetGrade - b) * total - currentFormativePoints * a) / (futurePoints * a); } else { const currentFormativeAvg = currentFormativeTotal > 0 ? currentFormativePoints / currentFormativeTotal : 0; const a = percent2; const b = percent1 * currentFormativeAvg; const total = currentSummativeTotal + futurePoints; neededScore = ((targetGrade - b) * total - currentSummativePoints * a) / (futurePoints * a); } const neededPoints = neededScore * futurePoints; if (neededScore > 1) { document.getElementById("neededOutput").innerHTML = `❌ Impossible! You need <span style="color:#ff4444;">${neededPoints.toFixed(1)}/${futurePoints}</span> (${(neededScore * 100).toFixed(1)}%)`; } else if (neededScore < 0) { document.getElementById("neededOutput").innerHTML = `✅ You already exceeded your goal!<br>Current: <span style="color:#00ff00;">${(currentGrade * 100).toFixed(1)}%</span>`; } else { document.getElementById("neededOutput").innerHTML = `🎯 You need <span style="color:#ffaa00;">${neededPoints.toFixed(1)}/${futurePoints}</span> (${(neededScore * 100).toFixed(1)}%)`; } }; document.getElementById("targetSlider").oninput = function() { document.getElementById("targetDisplay").textContent = this.value + '%'; }; </script> </body> </html>
