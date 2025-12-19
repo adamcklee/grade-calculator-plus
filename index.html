@@ -98,7 +98,7 @@ th {
 #neededOutput {
   font-weight: bold;
   margin-top: 10px;
-  min-height: 20px;
+  min-height: 40px;
 }
 
 #targetDisplay {
@@ -182,28 +182,30 @@ function calculateCurrentGrade(wF, wS) {
   return F * wF + S * wS;
 }
 
-document.getElementById("addScore").onclick = () => {
-  const [e,t] = scoreInput.value.split("/").map(Number);
-  if (!t || isNaN(e)) return alert("Use x/y format");
+addScore.onclick = () => {
+  const parts = scoreInput.value.split("/");
+  if (parts.length !== 2) return alert("Use x/y format");
 
-  (scoreType.value === "formative" ? percent1List : percent2List).push([e,t]);
+  const e = +parts[0], t = +parts[1];
+  if (!t || isNaN(e)) return alert("Invalid numbers");
 
-  const row = document.getElementById("scoreTable").insertRow();
+  const row = scoreTable.insertRow();
   row.insertCell(0).textContent = scoreType.value === "formative" ? `${e}/${t}` : "";
   row.insertCell(1).textContent = scoreType.value === "summative" ? `${e}/${t}` : "";
 
+  (scoreType.value === "formative" ? percent1List : percent2List).push([e,t]);
   scoreInput.value = "";
 };
 
-document.getElementById("calculate").onclick = () => {
+calculate.onclick = () => {
   const wF = percent1.value / 100;
   const wS = percent2.value / 100;
   const g = calculateCurrentGrade(wF, wS);
   output.textContent = isNaN(g) ? "No scores yet!" : `Final Grade: ${(g*100).toFixed(2)}%`;
 };
 
-/* ===== FIXED TARGET CALCULATOR ===== */
-document.getElementById("calculateNeeded").onclick = () => {
+/* ===== TARGET CALCULATOR (WITH MAX POSSIBLE MESSAGE) ===== */
+calculateNeeded.onclick = () => {
   const target = targetSlider.value / 100;
   const futurePts = +futurePoints.value;
   const wF = percent1.value / 100;
@@ -228,15 +230,25 @@ document.getElementById("calculateNeeded").onclick = () => {
     x = ((target - F*wF)*(sT+futurePts) - S*wS*sT) / (wS*futurePts);
   }
 
-  const needed = x * futurePts;
-
   if (x > 1) {
-    neededOutput.innerHTML = `❌ Impossible! Need ${needed.toFixed(1)}/${futurePts}`;
+    const maxPossible =
+      futureType.value === "summative"
+        ? F * wF + 1.0 * wS
+        : 1.0 * wF + S * wS;
+
+    neededOutput.innerHTML = `
+      ❌ <b>Impossible</b><br>
+      Even with 100%, your maximum possible grade is
+      <span style="color:#ffaa00;">
+        ${(maxPossible * 100).toFixed(1)}%
+      </span>
+    `;
   } else if (x < 0) {
-    neededOutput.innerHTML = `✅ Goal already exceeded!`;
+    neededOutput.innerHTML = `✅ You already exceeded your goal!`;
   } else {
     neededOutput.innerHTML =
-      `🎯 You need ${needed.toFixed(1)}/${futurePts} (${(x*100).toFixed(1)}%)`;
+      `🎯 You need ${(x*futurePts).toFixed(1)}/${futurePts}
+       (${(x*100).toFixed(1)}%)`;
   }
 };
 
